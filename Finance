@@ -1,16 +1,15 @@
-"""
-Finance
-"""
-
 import numpy as np
 from cvxopt import matrix, solvers
 import matplotlib.pyplot as plt
+import math 
 
 
 n=11
 m=21
 a=-0.5
 b=0.7
+p=0.3
+
 
     
 def cout(x,y):
@@ -39,33 +38,20 @@ def creerA2(n,m):
     for i in range(n):
         ligne=[0. for k in range(n*m)]
         for j in range(m):
-            ligne[i+j*m]=(1+a)**j*(1+b)**(m+1-j)
+            ligne[i*m+j]=(1+a)**j*(1+b)**(m-1-j)
         A.append(ligne)
+    A=np.array(A)
+    return A
     
 def creerABS(A1,A2):
-    np.concatenate(A1,A2,axis=0)
-    
-# def aBS(p,m):
-#     a=np.zeros(m)
-#     for j in range(m):
-#         a[j]=scipy.special.binom(j, m-1)*((1-p)**(10-j))*p**j
-# 
-#     return a
-#     
-#     
-# def bBS(p,n):
-#     b=np.zeros(n)
-#     for j in range(n):
-#         a[j]=scipy.special.binom(j, n)*((1-p)**(10-j))*p**j
-#     return b
-#     
-#       
+    A=np.concatenate((A1,A2),axis=0)
+    return A
     
 
 
 def solve(c,d,n,m):    
     A1=matrix(creerA(n,m))
-    A2=creerA2(n,m)
+    A2=matrix(creerA2(n,m))
     A=creerABS(A1,A2)
     c=matrix(c)
     d=matrix(d)
@@ -75,7 +61,7 @@ def solve(c,d,n,m):
     G=matrix(G)
     dims ={'l':G.size[0], 'q':[], 's':[]}
     return solvers.conelp(c,G,h,dims,A,d)
-    
+
 def reassemblage(PI,n,m):
     M=np.zeros((m,n))
     for i in range(m):
@@ -104,4 +90,3 @@ for i in range(n):
         
 PI=solve(c,d,n,m)['x']
 plt.imshow(reassemblage(PI,n,m))
-
