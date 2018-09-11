@@ -8,9 +8,11 @@ n=11
 m=21
 a=-0.5
 b=0.7
-p=0.3
+p=b/(b-a)
 
-
+from cvxopt import printing
+printing.options["width"]=-1
+printing.options["height"]=-1
     
 def cout(x,y):
     if y<x:
@@ -25,7 +27,7 @@ def creerA(n,m):
         for j in range(m):
             ligne[i*m+j]=1.
         A.append(ligne)
-    for j in range(m):
+    for j in range(m-1):
         ligne=[0. for k in range(n*m)]
         for i in range(n):
             ligne[i*m+j]=1.
@@ -35,7 +37,7 @@ def creerA(n,m):
     
 def creerA2(n,m):
     A=[]
-    for i in range(n):
+    for i in range(n-1):
         ligne=[0. for k in range(n*m)]
         for j in range(m):
             ligne[i*m+j]=(1+a)**j*(1+b)**(m-1-j)
@@ -52,35 +54,41 @@ def creerABS(A1,A2):
 def solve(c,d,n,m):    
     A1=matrix(creerA(n,m))
     A2=matrix(creerA2(n,m))
-    A=creerABS(A1,A2)
+    A=matrix(creerABS(A1,A2))
+    print(A.size)
     c=matrix(c)
+    print(c)
     d=matrix(d)
+    print(d)
+    print(d.size)
     h=np.zeros((n*m))
     h=matrix(h)
     G=-np.eye((n*m))
     G=matrix(G)
+    print(A)
+    print(G)
     dims ={'l':G.size[0], 'q':[], 's':[]}
     return solvers.conelp(c,G,h,dims,A,d)
 
 def reassemblage(PI,n,m):
-    M=np.zeros((m,n))
+    M=np.zeros((n,m))
     for i in range(m):
         for j in range(n):
             M[j,i]=PI[i+j*m]
     return M
 
 
-d=np.zeros((n*m))
+d=np.zeros((2*n+m-2))
 
 for i in range(n):
-    d[i]=(math.factorial(n-1) // (math.factorial(i)*(math.factorial(n-1-i))))*((1-p)**(n-1-i))*p**(i)
+    d[i]=(math.factorial(n-1) / (math.factorial(i)*(math.factorial(n-1-i))))*((1-p)**(n-1-i))*p**(i)
     
     
-for j in range (m):
-    d[n+j]=math.factorial(m-1) // (math.factorial(j)*(math.factorial(m-1-j)))*((1-p)**(m-1-j))*p**(j)
+for j in range (m-1):
+    d[n+j]=math.factorial(m-1) / (math.factorial(j)*(math.factorial(m-1-j)))*((1-p)**(m-1-j))*p**(j)
     
-for i in range(n):
-    d[n+m+i]=(math.factorial(n-1) // (math.factorial(i)*(math.factorial(n-1-i))))*(1-p)**(n-1-i)*p**(i)*((1+a)**i)*((1+b)**(n-1-i))
+for i in range(n-1): 
+    d[n+m-1+i]=(math.factorial(n-1) / (math.factorial(i)*(math.factorial(n-1-i))))*(1-p)**(n-1-i)*p**(i)*((1+a)**i)*((1+b)**(n-1-i))
     
 c=np.zeros(n*m)
         
