@@ -1,6 +1,4 @@
 #C'est en python 2.7 ...
-Dora
-
 
 # -*- coding: utf-8 -*-
 """
@@ -31,14 +29,14 @@ def integration(f,xmin,xmax):
         s+=f(xmin+pas*i)*pas
     return s
 
-def creerA(n):
+def creerA(n,m):
     A=[]
     for i in range(n):
         ligne=[0. for k in range(n*n)]
         for j in range(n):
             ligne[i*n+j]=1.
         A.append(ligne)
-    for i in range(n-1):
+    for i in range(m-1):
         ligne=[0. for k in range(n*n)]
         for j in range(n):
             ligne[i+j*n]=1.
@@ -89,3 +87,32 @@ for i in range(n):
 
 PI=solve(a,b,c,n)['x']
 plt.imshow(reassemblage(PI,n))
+
+
+##PARTIE FINANCE
+
+def creerA2(n,m,a,b):
+    A=[]
+    for i in range(n):
+        ligne=[(1+a)**k*(1+b)**(m-k) for k in range(m)]
+    A.append(ligne)
+    return A
+    
+def creerABS(A1,A2):
+    np.concatenate(A1,A2,axis=0)
+    
+def aBS(p,m):
+    a=np.zeros(m)
+    for j in range(m):
+        a[j]=scipy.special.binom(j, m)*((1-p)**(10-j))*p**j
+
+    return a
+    
+    
+def bBS(p,n):
+    b=np.zeros(n)
+    for j in range(n):
+        a[j]=scipy.special.binom(j, n)*((1-p)**(10-j))*p**j
+    return b
+    
+    
