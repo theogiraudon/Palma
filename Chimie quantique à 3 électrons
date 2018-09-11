@@ -1,1 +1,222 @@
 
+# -*- coding: utf-8 -*-
+"""
+CHIMIE QUANTIQUE
+"""
+
+#import sys  
+#
+#reload(sys)  
+#sys.setdefaultencoding('utf8')
+
+import numpy as np
+from cvxopt import matrix, solvers
+import matplotlib.pyplot as plt
+
+n=5
+def mu(x) :
+    return (np.pi/2)*np.sin(np.pi*x)
+
+    
+#plt.plot([0.01*x for x in range(100)],[mu(0.01*x) for x in range(100) ])
+#plt.show()
+    
+def cout(x,y):
+    return 1./abs(x-y)
+
+def integration(f,xmin,xmax):
+    s=0.
+    nbr=10
+    pas=(xmax-xmin)/float(nbr)
+    for i in range(nbr):
+        s+=f(xmin+pas*i)*pas
+    return s
+
+def creerA(n):
+    A=[]
+    for i in range(n):
+        ligne=[0. for k in range(n*n)]
+        for j in range(n):
+            ligne[i*n+j]=1.
+        A.append(ligne)
+    for i in range(n-1):
+        ligne=[0. for k in range(n*n)]
+        for j in range(n):
+            ligne[i+j*n]=1.
+        A.append(ligne)
+    A=np.array(A)
+    return A
+      
+def int_to_base_b(n,b):
+    T=[]
+    a=n
+    while a>0:
+        r=a%(b)
+        T=[r]+T
+        a=int(a/b)
+    return [0 for i in range(3-len(T))]+T
+        
+    
+def creerA3(n):
+    A=[]
+    for Nbr_elec in range(3):
+        for nbr in range(n):
+        
+            ligne=[0. for i in range(n**3)]
+            #cette ligne teste la condition sur 
+            #la variable marginale 
+            #PI X,X,X,..,X,n,X,...,X 
+            #avec n en Nbr_elec-ieme position
+            #en sommant sur les autres X
+            for i in range(n*n*n):
+                if (int_to_base_b(i,n)[Nbr_elec]==nbr):
+                    ligne[i]=1.
+            A.append(ligne)
+    A=[A[i] for i in range(len(A)-2)]
+    A=np.array(A)
+    return A
+
+def creeraetb(a,b,n):
+    d=np.zeros((2*n-1))
+    for i in range(n):
+        d[i]=a[i]
+    for i in range(n-1):
+        d[i+n]=b[i]
+    return d
+
+def creeraetb3(a,b,n):
+    d=np.zeros((3*n-2))
+    for i in range(n):
+        d[i]=a[i]
+        d[i+n]=a[i]
+    for i in range(n-2):
+        d[i+2*n]=a[i]
+    return d
+
+def creerc(n):
+    c=np.zeros((n*n))
+    for i in range(n):
+        for j in range(n):
+            if i!=j:
+                c[j+n*i]=cout((float(i)+1)/n,(float(j)+1)/n)
+            else:
+                c[j+n*i]=1000
+    return c
+
+def creerc3(n):
+    c=np.zeros((n*n*n))
+    for i in range(n*n*n):
+        t=int_to_base_b(i,n)
+        # exemple t=[0,0,1] ce qui veut dire que 
+        #les electrion 1 et 2 sont a gauche et le troisieme a droite
+        electrons=[[1,2],[1,3],[2,3]]
+        s=0
+        for paire in electrons:
+            if paire[0]==paire[1]:#les deux electrons de la paire delectron sont au meme endroit
+                s+=10000
+            else:
+                s+=cout((float(paire[0])+1)/n,(float(paire[1])+1)/n)
+                
+        
+    return c
+
+
+
+def solve(a,b,c,n):    
+    A=matrix(creerA(n))
+    d=matrix(creeraetb(a,b,n))
+    c=matrix(creerc(n))
+    h=np.zeros((n*n))
+    h=matrix(h)
+    G=-np.eye((n*n))
+    G=matrix(G)
+    dims ={'l':G.size[0], 'q':[], 's':[]}
+    return solvers.conelp(c,G,h,dims,A,d)
+
+
+def solve3(a,b,c,n):    
+    A=matrix(creerA3(n))
+    d=matrix(creeraetb3(a,a,n))
+    c=matrix(creerc3(n))
+    h=np.zeros((n**3))
+    h=matrix(h)
+    G=-np.eye((n**3))
+    G=matrix(G)
+    dims ={'l':G.size[0], 'q':[], 's':[]}
+    return solvers.conelp(c,G,h,dims,A,d)
+
+
+def reassemblage(PI,n):
+    M=np.zeros((n,n))
+    for i in range(n):
+        for j in range(n):
+            M[i,j]=PI[j+i*n]
+    return M
+
+a=np.zeros((n))
+
+for i in range(n):
+    a[i]=integration(mu,float(i)/n,(float(i)+1)/n)
+
+deux_electrons=False
+trois_electrons=True
+ 
+if deux_electrons:
+    PI=solve(a,a,creerc(n),n)['x']
+    T_map=reassemblage(PI,n)
+    
+    import scipy
+    import scipy.ndimage
+    from mpl_toolkits.mplot3d import axes3d, Axes3D
+    
+    sigma_y = 2.0
+    sigma_x = 2.0
+    
+    # Apply gaussian filter
+    sigma = [sigma_y, sigma_x]
+    Z = scipy.ndimage.filters.gaussian_filter(T_map, sigma, mode='constant')
+    
+    
+    I=np.linspace(0,1,len(T_map))
+    X, Y = np.meshgrid(I,I)
+    
+    
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.gca(projection='3d')
+    ax.plot_surface(X, Y, Z, cmap='summer', rstride=1, cstride=1, alpha=None)
+    ax.view_init(30, 60)
+    ax.set_xlabel('Espace X')
+    ax.set_ylabel('Espace Y')
+    ax.set_zlabel('densité de probabilité')
+    plt.title('Plan de transport optimal pour 2 électrons')
+    plt.draw()
+    
+if trois_electrons:
+    PI=solve3(a,a,creerc3(n),n)['x']
+    T_map=reassemblage(PI[0:(n*n)],n)
+    
+    import scipy
+    import scipy.ndimage
+    from mpl_toolkits.mplot3d import axes3d, Axes3D
+    
+    sigma_y = 2.0
+    sigma_x = 2.0
+    
+    # Apply gaussian filter
+    sigma = [sigma_y, sigma_x]
+    Z = scipy.ndimage.filters.gaussian_filter(T_map, sigma, mode='constant')
+    
+    
+    I=np.linspace(0,1,len(T_map))
+    X, Y = np.meshgrid(I,I)
+    
+    
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.gca(projection='3d')
+    ax.plot_surface(X, Y, Z, cmap='summer', rstride=1, cstride=1, alpha=None)
+    ax.view_init(30, 60)
+    ax.set_xlabel('Espace X')
+    ax.set_ylabel('Espace Y')
+    ax.set_zlabel('densité de probabilité')
+    plt.title('Plan de transport optimal pour 3 électrons')
+    plt.draw()
