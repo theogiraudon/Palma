@@ -1,0 +1,85 @@
+# -*- coding: utf-8 -*-
+"""
+CHIMIE QUANTIQUE
+"""
+
+import numpy as np
+from cvxopt import matrix, solvers
+import matplotlib.pyplot as plt
+
+n=20
+def mu(x) :
+    return 2*x
+
+def nu(x) :
+    return 1
+    
+def cout(x,y):
+    return (x-y)**2
+
+def integration(f,xmin,xmax):
+    s=0.
+    nbr=20
+    pas=(xmax-xmin)/float(nbr)
+    for i in range(nbr):
+        s+=f(xmin+pas*i)*pas
+    return s
+
+def creerA(n):
+    A=[]
+    for i in range(n):
+        ligne=[0. for k in range(n*n)]
+        for j in range(n):
+            ligne[i*n+j]=1.
+        A.append(ligne)
+    for i in range(n-1):
+        ligne=[0. for k in range(n*n)]
+        for j in range(n):
+            ligne[i+j*n]=1.
+        A.append(ligne)
+    A=np.array(A)
+    return A
+      
+    
+def creeraetb(a,b,n):
+    d=np.zeros((2*n-1))
+    for i in range(n):
+        d[i]=a[i]
+    for i in range(n-1):
+        d[i+n]=b[i]
+    return d
+
+def solve(a,b,c,n):    
+    A=matrix(creerA(n))
+    d=matrix(creeraetb(a,b,n))
+    c=matrix(c)
+    h=np.zeros((n*n))
+    h=matrix(h)
+    G=-np.eye((n*n))
+    G=matrix(G)
+    dims ={'l':G.size[0], 'q':[], 's':[]}
+    return solvers.conelp(c,G,h,dims,A,d)
+    
+def reassemblage(PI,n):
+    M=np.zeros((n,n))
+    for i in range(n):
+        for j in range(n):
+            M[i,j]=PI[j+i*n]
+    return M
+
+a=np.zeros((n))
+b=np.zeros((n))
+
+for i in range(n):
+    a[i]=integration(mu,float(i)/n,(float(i)+1)/n)
+    b[i]=integration(nu,float(i)/n,(float(i)+1)/n)
+
+c=np.zeros((n*n))
+
+for i in range(n):
+    for j in range(n):
+        c[j+n*i]=cout((float(i)+1)/n,(float(j)+1)/n)
+        
+
+PI=solve(a,b,c,n)['x']
+plt.imshow(reassemblage(PI,n))
