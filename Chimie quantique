@@ -6,9 +6,8 @@ CHIMIE QUANTIQUE
 import numpy as np
 from cvxopt import matrix, solvers
 import matplotlib.pyplot as plt
-import scipy
 
-n=50
+n=80
 def mu(x) :
     return (np.pi/2)*np.sin(np.pi*x)
 
@@ -88,4 +87,32 @@ for i in range(n):
             c[j+n*i]=100000000
 
 PI=solve(a,b,c,n)['x']
-plt.imshow(reassemblage(PI,n))
+T_map=reassemblage(PI,n)
+
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import numpy as np
+
+
+fig = plt.figure(figsize=((8,8)))
+ax = fig.gca(projection='3d')
+
+# Make data.
+X = np.linspace(0,1,len(T_map))
+Y = np.linspace(0,1,len(T_map))
+X, Y = np.meshgrid(X, Y)
+Z=T_map
+
+# Plot the surface.
+surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)
+
+# Customize the z axis.
+ax.set_zlim(0, 0.08)
+ax.zaxis.set_major_locator(LinearLocator(10))
+ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+
+
+plt.show()
