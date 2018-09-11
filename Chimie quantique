@@ -96,6 +96,8 @@ PI=solve(a,b,c,n)['x']
 T_map=reassemblage(PI,n)
 
 import scipy
+import scipy.ndimage
+from mpl_toolkits.mplot3d import axes3d, Axes3D
 
 sigma_y = 2.0
 sigma_x = 2.0
