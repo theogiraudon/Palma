@@ -6,16 +6,20 @@ CHIMIE QUANTIQUE
 import numpy as np
 from cvxopt import matrix, solvers
 import matplotlib.pyplot as plt
+import scipy
 
-n=20
+n=50
 def mu(x) :
-    return 2*x
+    return (np.pi/2)*np.sin(np.pi*x)
 
 def nu(x) :
-    return 1
+    return (np.pi/2)*np.sin(np.pi*x)
+    
+plt.plot([0.01*x for x in range(100)],[mu(0.01*x) for x in range(100) ])
+plt.show()
     
 def cout(x,y):
-    return (x-y)**2
+    return 1./abs(x-y)
 
 def integration(f,xmin,xmax):
     s=0.
@@ -78,8 +82,10 @@ c=np.zeros((n*n))
 
 for i in range(n):
     for j in range(n):
-        c[j+n*i]=cout((float(i)+1)/n,(float(j)+1)/n)
-        
+        if i!=j:
+            c[j+n*i]=cout((float(i)+1)/n,(float(j)+1)/n)
+        else:
+            c[j+n*i]=100000000
 
 PI=solve(a,b,c,n)['x']
 plt.imshow(reassemblage(PI,n))
