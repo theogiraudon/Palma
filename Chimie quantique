@@ -3,26 +3,31 @@
 CHIMIE QUANTIQUE
 """
 
+import sys  
+
+reload(sys)  
+sys.setdefaultencoding('utf8')
+
 import numpy as np
 from cvxopt import matrix, solvers
 import matplotlib.pyplot as plt
 
-n=80
+n=30
 def mu(x) :
     return (np.pi/2)*np.sin(np.pi*x)
 
 def nu(x) :
     return (np.pi/2)*np.sin(np.pi*x)
     
-plt.plot([0.01*x for x in range(100)],[mu(0.01*x) for x in range(100) ])
-plt.show()
+#plt.plot([0.01*x for x in range(100)],[mu(0.01*x) for x in range(100) ])
+#plt.show()
     
 def cout(x,y):
     return 1./abs(x-y)
 
 def integration(f,xmin,xmax):
     s=0.
-    nbr=20
+    nbr=10
     pas=(xmax-xmin)/float(nbr)
     for i in range(nbr):
         s+=f(xmin+pas*i)*pas
@@ -84,35 +89,32 @@ for i in range(n):
         if i!=j:
             c[j+n*i]=cout((float(i)+1)/n,(float(j)+1)/n)
         else:
-            c[j+n*i]=100000000
+            c[j+n*i]=1000
+            
 
 PI=solve(a,b,c,n)['x']
 T_map=reassemblage(PI,n)
 
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
-import numpy as np
+import scipy
+
+sigma_y = 2.0
+sigma_x = 2.0
+
+# Apply gaussian filter
+sigma = [sigma_y, sigma_x]
+Z = scipy.ndimage.filters.gaussian_filter(T_map, sigma, mode='constant')
 
 
-fig = plt.figure(figsize=((8,8)))
+I=np.linspace(0,1,len(T_map))
+X, Y = np.meshgrid(I,I)
+
+
+fig = plt.figure(figsize=(8,8))
 ax = fig.gca(projection='3d')
-
-# Make data.
-X = np.linspace(0,1,len(T_map))
-Y = np.linspace(0,1,len(T_map))
-X, Y = np.meshgrid(X, Y)
-Z=T_map
-
-# Plot the surface.
-surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
-                       linewidth=0, antialiased=False)
-
-# Customize the z axis.
-ax.set_zlim(0, 0.08)
-ax.zaxis.set_major_locator(LinearLocator(10))
-ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
-
-
-plt.show()
+ax.plot_surface(X, Y, Z, cmap='summer', rstride=1, cstride=1, alpha=None)
+ax.view_init(30, 60)
+ax.set_xlabel('Espace X')
+ax.set_ylabel('Espace Y')
+ax.set_zlabel('densité de probabilité')
+plt.title('Plan de transport optimal pour 2 électrons')
+plt.draw()
