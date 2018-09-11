@@ -55,18 +55,18 @@ def solve(c,d,n,m):
     A1=matrix(creerA(n,m))
     A2=matrix(creerA2(n,m))
     A=matrix(creerABS(A1,A2))
-    print(A.size)
+    # print(A.size)
     c=matrix(c)
     print(c)
     d=matrix(d)
-    print(d)
-    print(d.size)
+    # print(d)
+    # print(d.size)
     h=np.zeros((n*m))
     h=matrix(h)
     G=-np.eye((n*m))
     G=matrix(G)
-    print(A)
-    print(G)
+    # print(A)
+    # print(G)
     dims ={'l':G.size[0], 'q':[], 's':[]}
     return solvers.conelp(c,G,h,dims,A,d)
 
@@ -94,7 +94,13 @@ c=np.zeros(n*m)
         
 for i in range(n):
     for j in range(m):
-        c[j+n*i]=cout(((1+a)**i)*(1+b)**(n-1-i),((1+a)**j)*(1+b)**(m-1-j))
+        c[j+m*i]=cout(((1+a)**i)*(1+b)**(n-1-i),((1+a)**j)*(1+b)**(m-1-j))
         
 PI=solve(c,d,n,m)['x']
-plt.imshow(reassemblage(PI,n,m))
+min=0
+for i in range (n*m):
+    min=min+PI[i]*c[i]
+    
+print(min)
+M=reassemblage(PI,n,m)
+plt.imshow(M)
