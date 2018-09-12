@@ -57,7 +57,7 @@ def solve(c,d,n,m):
     A=matrix(creerABS(A1,A2))
     # print(A.size)
     c=matrix(c)
-    print(c)
+    # print(c)
     d=matrix(d)
     # print(d)
     # print(d.size)
@@ -101,6 +101,49 @@ min=0
 for i in range (n*m):
     min=min+PI[i]*c[i]
     
-print(min)
+
 M=reassemblage(PI,n,m)
 plt.imshow(M)
+
+for i in range (n*m):
+    c[i]=-c[i]
+PI2=solve(c,d,n,m)['x']
+max=0
+for i in range (n*m):
+    max=max+PI2[i]*c[i]
+    
+print('min=',min)
+print('max=', -max)
+
+# Vérification de l'accord avec le modèle CRR
+
+x=np.zeros(n)
+px=np.zeros(n)
+y=np.zeros(n*m)
+py=np.zeros(n*m)
+
+for i in range(n):
+    x[i]=((1+a)**i)*((1+b)**(n-i-1))
+    px[i]=(math.factorial(n-1) / (math.factorial(i)*(math.factorial(n-1-i))))*((1-p)**(n-1-i))*p**(i)
+
+for i in range(n):
+    for j in range(m):
+        y[i*m+j]=cout(((1+a)**(j)*((1+b)**(m-j-1))),x[i])
+        if i>j:
+            py[i*m+j]=0
+        else :
+            if (j-i)>(m-n):
+                py[i*m+j]=0
+            else:
+                py[i*m+j]=(math.factorial(m-n) / (math.factorial(j-i)*(math.factorial(m-n-j+i))))*(math.factorial(n-1) / (math.factorial(i)*(math.factorial(n-1-i))))*((1-p)**(m-1-j))*(p**(j))
+ 
+ 
+s=0
+for i in range(n):
+    for j in range(m):
+        s=s+y[i*m+j]*py[i*m+j]
+        
+        
+print("le coût de l'option dans le modèle CRR est",s)
+
+    
